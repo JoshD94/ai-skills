@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UI and UX principles</title>
+<style>
+:root{--ink:#1d2330;--mute:#6b7280;--bg:#fafafa;--pane:#f1f3f6;--blue:#2f6fed;--red:#c2410c;--green:#15803d}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;padding-bottom:90px}
+main{max-width:760px;margin:0 auto;padding:24px 16px}
+h1{font-size:26px;letter-spacing:-.02em;margin:0 0 4px}
+h2{font-size:20px;margin:40px 0 12px;letter-spacing:-.01em}
+.intro{opacity:.75;margin:0 0 8px}
+.item{background:#fff;color:var(--ink);border-radius:16px;padding:16px;margin:0 0 14px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 1px 8px rgba(16,24,40,.04)}
+.item h3{font-size:17px;margin:0;letter-spacing:-.01em}
+.item h3 .n{color:var(--mute);font-weight:500;margin-right:6px}
+.src{color:var(--mute);font-size:13px;margin:2px 0 8px;font-style:italic}
+.body{margin:0 0 12px}
+.pick{display:flex;gap:8px;margin-top:12px}
+.pick button{flex:1;border:0;border-radius:10px;padding:10px;font:600 14px system-ui;background:#eef0f3;color:var(--ink);cursor:pointer}
+.item.keep .pick .k{background:var(--green);color:#fff}
+.item.skip .pick .s{background:#9ca3af;color:#fff}
+.item.skip{opacity:.55}
+.bar{position:fixed;left:0;right:0;bottom:0;color:var(--ink);background:rgba(255,255,255,.96);backdrop-filter:blur(8px);box-shadow:0 -1px 10px rgba(0,0,0,.08);padding:10px 16px}
+.bar .in{max-width:760px;margin:0 auto;display:flex;gap:10px;align-items:center}
+.bar .c{flex:1;font-size:14px}
+.bar button{border:0;border-radius:10px;padding:10px 14px;font:600 14px system-ui;background:var(--ink);color:#fff;cursor:pointer}
+#out{width:100%;height:120px;margin-top:8px;display:none;font:12px ui-monospace,monospace;border-radius:8px;border:1px solid #ddd;padding:8px}
+/* demo primitives */
+.demo{display:flex;gap:10px}
+.pane{flex:1;min-width:0;background:var(--pane);border-radius:12px;min-height:150px;position:relative;padding:28px 12px 12px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px;overflow:hidden;font-size:12px}
+.pane .tag{position:absolute;top:7px;left:10px;font-size:11px;font-weight:600;letter-spacing:.02em}
+.bad .tag{color:var(--red)} .good .tag{color:var(--green)} .pane .tag.n{color:var(--mute)}
+.col{width:100%;display:flex;flex-direction:column;gap:6px}
+.row{display:flex;gap:6px;align-items:center}
+.l{height:6px;border-radius:3px;background:#c4cad3}
+.h{height:10px;border-radius:3px;background:#3b4250}
+.b{display:inline-block;padding:6px 12px;border-radius:8px;background:var(--blue);color:#fff;font-size:11px;font-weight:600;white-space:nowrap}
+.b2{display:inline-block;padding:6px 12px;border-radius:8px;background:#e2e6ec;color:#2b3240;font-size:11px;font-weight:600;white-space:nowrap}
+.bt{display:inline-block;padding:6px 8px;color:var(--blue);font-size:11px;font-weight:600}
+.card{background:#fff;border-radius:10px;padding:10px;width:100%;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#7b8494}
+.sw{width:22px;height:22px;border-radius:5px;display:inline-block}
+.in{background:#fff;border-radius:8px;padding:7px 9px;width:100%;color:#9aa1ad;font-size:11px;box-shadow:inset 0 0 0 1px #d6dbe2}
+.lab{font-size:11px;font-weight:600;color:#3b4250}
+.mute{color:var(--mute)}
+.num{font-variant-numeric:tabular-nums}
+.big{font-size:22px;font-weight:700;letter-spacing:-.02em}
+svg{display:block}
+@keyframes mv{from{transform:translateX(0)}to{transform:translateX(110px)}}
+@keyframes sp{to{transform:rotate(360deg)}}
+@keyframes sh{0%{background-position:-120px 0}100%{background-position:120px 0}}
+.shim{background:linear-gradient(90deg,#dde1e7 0,#eef0f3 40px,#dde1e7 80px);background-size:240px 100%;animation:sh 1.4s linear infinite}
+</style>
+</head>
+<body>
+<main>
+<h1>100 UI and UX principles</h1>
+<p class="intro">The candidates the erp-ui principles were picked from (93 kept; see principles.md). Each has a picture: the left side shows what to avoid, the right side shows the better version. Some are style choices instead, like pill versus rounded buttons. Tap Keep or Skip, then use Copy picks at the bottom.</p>
+<div id="list"></div>
+</main>
+<div class="bar"><div class="in"><div class="c" id="count">0 kept · 0 skipped · 100 left</div><button id="copy">Copy picks</button></div><div style="max-width:760px;margin:0 auto"><textarea id="out" readonly></textarea></div></div>
+<script>
+const L=(w,c)=>`<div class="l" style="width:${w}%${c?';background:'+c:''}"></div>`;
+const H=(w,s)=>`<div class="h" style="width:${w}%;${s||''}"></div>`;
+const P=(a,b,la,lb)=>`<div class="demo"><div class="pane bad"><span class="tag">${la||'Avoid'}</span>${a}</div><div class="pane good"><span class="tag">${lb||'Better'}</span>${b}</div></div>`;
+const Q=(a,b,la,lb)=>`<div class="demo"><div class="pane"><span class="tag n">${la}</span>${a}</div><div class="pane"><span class="tag n">${lb}</span>${b}</div></div>`;
+const S=(a,t)=>`<div class="demo"><div class="pane">${t?`<span class="tag n">${t}</span>`:''}${a}</div></div>`;
+const C=(x,s)=>`<div class="col" style="${s||''}">${x}</div>`;
+const R=(x,s)=>`<div class="row" style="${s||''}">${x}</div>`;
+const rep=(n,f)=>Array.from({length:n},(_,i)=>f(i)).join('');
+const dots=(n,cols,gap,st)=>`<div style="display:grid;grid-template-columns:repeat(${cols},10px);gap:${gap}">${rep(n,i=>`<i class="dot" style="${typeof st==='function'?st(i):st||''}"></i>`)}</div>`;
+const lines=(ws)=>ws.map(w=>L(w)).join('');
+const money=['1.250.000','98.500','12.400.000','430.000'];
+const sh=(s)=>`<div style="width:56px;height:40px;border-radius:10px;background:#fff;${s}"></div>`;
+
+const UI=[
+['Proximity (Gestalt)','Wertheimer, 1923','Things close together read as one group. Use space, not lines, to show what belongs together.',
+ P(dots(12,6,'10px'),R(dots(6,3,'5px')+'<div style="width:22px"></div>'+dots(6,3,'5px')))],
+['Similarity (Gestalt)','Wertheimer, 1923','Things that look alike read as the same kind. All tappable text should share one look.',
+ P(C(lines([80,60,70,50])),C(L(80)+L(60,'#2f6fed')+L(70)+L(50,'#2f6fed')))],
+['Common region','Palmer, 1992','A shared soft background groups items without drawing a border around each one.',
+ P(C(R('<span class="lab">Cash</span>')+L(70)+R('<span class="lab">Card</span>')+L(60)),C(`<div class="card">${C('<span class="lab">Cash</span>'+L(70))}</div><div class="card">${C('<span class="lab">Card</span>'+L(60))}</div>`))],
+['Figure and ground','Rubin, 1915','A sheet or dialog needs a dim backdrop so the eye knows what is on top.',
+ P(`<div style="position:relative;width:100%">${C(lines([90,70,85,60,80]))}<div class="card" style="position:absolute;inset:8px 20px;box-shadow:none">${H(50)}</div></div>`,`<div style="position:relative;width:100%">${C(lines([90,70,85,60,80]))}<div style="position:absolute;inset:-40px;background:rgba(20,25,35,.45)"></div><div class="card" style="position:absolute;inset:8px 20px">${H(50)}</div></div>`)],
+['Alignment and continuity','Gestalt continuity','Content should share left edges. Every new edge is one more thing the eye has to track.',
+ P(C(H(40,'margin-left:6px')+L(80)+L(60,'margin-left:14px')+`<span class="b" style="align-self:center">Save</span>`),C(H(40)+L(80)+L(60)+`<span class="b" style="align-self:flex-start">Save</span>`))],
+['Closure (Gestalt)','Koffka: "The whole is other than the sum of its parts."','People complete partial shapes. Icons and charts can drop lines and still read.',
+ S(`<svg width="80" height="80"><circle cx="40" cy="40" r="30" fill="none" stroke="#3b4250" stroke-width="5" stroke-dasharray="30 14"/></svg>`)],
+['Hierarchy by size, weight and colour','Refactoring UI','Make the key number big and dark, and its label small and grey. Avoid making everything the same size.',
+ P(C('<b>Total sales</b><b>Rp 12.400.000</b><b>vs last week +12%</b>'),C('<span class="mute">Total sales</span><span class="big num">Rp 12.400.000</span><span style="color:#15803d">+12% vs last week</span>'))],
+['Type scale','Modular scale, 1.25 ratio','Pick font sizes from a fixed scale instead of choosing a new size for each screen.',
+ S(R([12,15,19,24,30].map(s=>`<span style="font-size:${s}px;font-weight:600">Aa</span>`).join(''),'gap:12px;align-items:baseline')+'<span class="mute">12 · 15 · 19 · 24 · 30</span>')],
+['Line length 45–75 characters','Bringhurst: "Anything from 45 to 75 characters is widely regarded as a satisfactory length of line."','Very long lines are hard to read. Keep text blocks narrow even on wide screens.',
+ P(C(lines([100,100,100,100,40])),C(lines([62,62,62,62,62,30])))],
+['Line height for body text','Common rule: 1.4–1.6','Body text needs room between lines. Headings can be tighter.',
+ P(`<p style="margin:0;line-height:1.05;font-size:12px">Sales from every shop are added up each night so the totals here stay current.</p>`,`<p style="margin:0;line-height:1.55;font-size:12px">Sales from every shop are added up each night so the totals here stay current.</p>`)],
+['8-point spacing grid','Material, Apple HIG','All gaps and sizes come from 4 or 8 point steps, so rhythm stays even across screens.',
+ P(C(`<div class="card" style="padding:7px">${H(50)}</div><div style="height:3px"></div><div class="card" style="padding:13px">${H(40)}</div><span class="mute">7 · 3 · 13 · 22</span>`),C(`<div class="card" style="padding:8px">${H(50)}</div><div style="height:2px"></div><div class="card" style="padding:8px">${H(40)}</div><span class="mute">8 · 8 · 16 · 24</span>`))],
+['Inside spacing smaller than outside','Internal ≤ external rule','A label must sit closer to its own field than to the one above it.',
+ P(C('<span class="lab">Shop</span><div class="in">Pilih toko</div><div style="height:2px"></div><span class="lab">Date</span><div class="in">Hari ini</div>','gap:10px'),C('<span class="lab">Shop</span><div class="in" style="margin-top:-3px">Pilih toko</div><div style="height:10px"></div><span class="lab">Date</span><div class="in" style="margin-top:-3px">Hari ini</div>','gap:3px'))],
+['Nested corner radius','Outer radius = inner radius + padding','A rounded thing inside a rounded thing needs a smaller radius, or the corners look pinched.',
+ P(`<div style="background:#fff;border-radius:18px;padding:8px;width:110px"><div style="background:#c9d6f5;border-radius:18px;height:50px"></div></div>`,`<div style="background:#fff;border-radius:18px;padding:8px;width:110px"><div style="background:#c9d6f5;border-radius:10px;height:50px"></div></div>`)],
+['One family of corner radii','Design-token practice','Use two or three radii across the app, for example 8 for controls and 16 for cards. Avoid a new radius on every element.',
+ P(R(sh('border-radius:0')+sh('border-radius:20px')+sh('border-radius:5px')),R(sh('border-radius:12px')+sh('border-radius:12px')+sh('border-radius:12px')))],
+['Circular arc vs continuous corners (squircle)','Apple icon and hardware style','A plain arc corner has a visible kink where it meets the straight edge. A continuous curve looks softer and more expensive.',
+ Q(`<svg width="90" height="90"><rect x="5" y="5" width="80" height="80" rx="24" fill="#3b4250"/></svg>`,`<svg width="90" height="90"><path d="M45 5C77 5 85 13 85 45C85 77 77 85 45 85C13 85 5 77 5 45C5 13 13 5 45 5Z" fill="#3b4250"/></svg>`,'Circular arc','Continuous')],
+['Circles for people, rounded squares for things','Common platform convention','Avatars of people are circles. Shops, products and apps are rounded squares. The shape alone tells you what kind of thing it is.',
+ Q(R(`<div style="width:44px;height:44px;border-radius:50%;background:#c9d6f5;display:grid;place-items:center;font-weight:700">AS</div><div style="width:44px;height:44px;border-radius:50%;background:#f5d9c9;display:grid;place-items:center;font-weight:700">RT</div>`),R(`<div style="width:44px;height:44px;border-radius:12px;background:#d9ecd9;display:grid;place-items:center;font-weight:700">🏪</div><div style="width:44px;height:44px;border-radius:12px;background:#ece3d2;display:grid;place-items:center;font-weight:700">📦</div>`),'People','Shops and products')],
+['Pill vs rounded-rectangle buttons','Style choice','Pills feel friendly and consumer-like. Rounded rectangles feel calmer and more like a tool. Pick one for the whole app.',
+ Q(C('<span class="b" style="border-radius:99px">Save sale</span><span class="b2" style="border-radius:99px">Cancel</span>','align-items:center'),C('<span class="b">Save sale</span><span class="b2">Cancel</span>','align-items:center'),'Pill','Rounded 8')],
+['60-30-10 colour','Interior design rule','About 60% neutral background, 30% secondary surfaces, and 10% accent. The accent is for actions and active states only.',
+ S(`<div style="display:flex;width:100%;height:26px;border-radius:8px;overflow:hidden"><div style="flex:6;background:#f4f5f7"></div><div style="flex:3;background:#d7dbe2"></div><div style="flex:1;background:#2f6fed"></div></div><span class="mute">60 · 30 · 10</span>`)],
+['Text contrast of at least 4.5:1','WCAG 2.2 AA','Light grey on white looks clean in a mockup and is unreadable in a shop in the sun.',
+ P(`<div class="card"><span style="color:#c3c7ce">Total today</span><div style="color:#b5bac2;font-weight:700;font-size:16px">Rp 1.250.000</div></div>`,`<div class="card"><span style="color:#5b6472">Total today</span><div style="color:#1d2330;font-weight:700;font-size:16px">Rp 1.250.000</div></div>`)],
+['Colour is never the only signal','WCAG 1.4.1','Pair colour with an icon or a word, so colour-blind users and glare still work.',
+ P(C(['#16a34a','#dc2626','#16a34a'].map(c=>R(`<i class="dot" style="background:${c}"></i>`+L(60))).join('')),C([['#16a34a','✓ Paid'],['#dc2626','✕ Cancelled'],['#16a34a','✓ Paid']].map(([c,t])=>R(`<span style="color:${c};font-weight:600">${t}</span>`)).join('')))],
+['One neutral ramp','Refactoring UI','Use five to eight planned greys. Avoid a new grey picked by eye on every screen.',
+ P(R(['#e9e9e9','#dcdfe3','#d0d0d0','#c8ccd2','#bbbbbb','#a9aeb6','#999','#8a8f99'].map(c=>`<span class="sw" style="background:${c};width:16px"></span>`).join(''),'gap:3px'),R(['#f4f5f7','#e2e6ec','#b8bfca','#6b7280','#1d2330'].map(c=>`<span class="sw" style="background:${c}"></span>`).join('')))],
+['Tinted neutrals','Refactoring UI','Greys with a slight warm or cool tint look intended. Pure grey looks flat.',
+ Q(R(['#f5f5f5','#e0e0e0','#9e9e9e','#424242'].map(c=>`<span class="sw" style="background:${c}"></span>`).join('')),R(['#f4f5f8','#dfe3ea','#97a0b0','#363d4c'].map(c=>`<span class="sw" style="background:${c}"></span>`).join('')),'Pure grey','Cool tint')],
+['No grey text on coloured backgrounds','Refactoring UI: "Don\'t use grey text on coloured backgrounds"','On a coloured surface, use a lighter shade of that colour or white with transparency.',
+ P(`<div style="background:#2f6fed;border-radius:10px;padding:12px;width:100%"><div style="color:#fff;font-weight:700">Rp 12.400.000</div><div style="color:#8a8f99">This week</div></div>`,`<div style="background:#2f6fed;border-radius:10px;padding:12px;width:100%"><div style="color:#fff;font-weight:700">Rp 12.400.000</div><div style="color:rgba(255,255,255,.72)">This week</div></div>`)],
+['Use fewer borders','Refactoring UI: "Use fewer borders"','Separate things with space, a background shift, or a soft shadow before reaching for a line.',
+ P(C(rep(3,()=>`<div style="border:1px solid #9aa1ad;border-radius:6px;padding:6px;background:#fff">${R(L(50)+'<div style="flex:1"></div>'+L(20))}</div>`)),`<div class="card" style="padding:4px 10px">${rep(3,()=>`<div style="padding:7px 0">${R(L(50)+'<div style="flex:1"></div>'+L(20))}</div>`)}</div>`)],
+['Soft, layered shadows','Two-layer shadow technique','A real shadow is a tight dark one plus a wide soft one, from one light source above. Avoid one big grey blur.',
+ P(`<div style="width:90px;height:56px;background:#fff;border-radius:12px;box-shadow:4px 4px 14px rgba(0,0,0,.45)"></div>`,`<div style="width:90px;height:56px;background:#fff;border-radius:12px;box-shadow:0 1px 2px rgba(16,24,40,.08),0 8px 20px rgba(16,24,40,.08)"></div>`)],
+['A fixed elevation scale','Material elevation','Three or four shadow levels, each with one job: resting card, raised menu, dialog.',
+ S(R(['0 1px 2px rgba(16,24,40,.08)','0 4px 10px rgba(16,24,40,.10)','0 12px 28px rgba(16,24,40,.16)'].map(s=>`<div style="width:56px;height:56px;background:#fff;border-radius:12px;box-shadow:${s}"></div>`).join(''),'gap:18px'),'Card · Menu · Dialog')],
+['Tabular figures for numbers','OpenType tnum','Digits that all have the same width stay lined up in columns and do not jiggle as they update.',
+ P(C(['1.111.111','8.888.888','4.104.711'].map(n=>`<span style="font-variant-numeric:proportional-nums;font-size:15px;font-family:Georgia,serif">${n}</span>`).join(''),'align-items:flex-end'),C(['1.111.111','8.888.888','4.104.711'].map(n=>`<span class="num" style="font-size:15px">${n}</span>`).join(''),'align-items:flex-end'))],
+['Right-align money','Table design convention','Amounts line up by their last digit, so size is visible at a glance.',
+ P(C(money.map(m=>R(L(40)+`<span class="num" style="margin-left:10px">Rp ${m}</span>`)).join('')),C(money.map(m=>R(L(40)+`<span class="num" style="margin-left:auto">Rp ${m}</span>`)).join('')))],
+['Optical alignment','Type and icon design practice','Centre things by how they look, not by their box. A play triangle must move right to look centred.',
+ P(`<svg width="70" height="70"><circle cx="35" cy="35" r="32" fill="#3b4250"/><path d="M24 22L46 35L24 48Z" fill="#fff"/></svg>`,`<svg width="70" height="70"><circle cx="35" cy="35" r="32" fill="#3b4250"/><path d="M28 22L50 35L28 48Z" fill="#fff"/></svg>`)],
+['Overshoot for round shapes','Type design (round letters dip below the line)','A circle must be a little bigger than a square to look the same size.',
+ P(R(`<div style="width:40px;height:40px;background:#3b4250;border-radius:3px"></div><div style="width:40px;height:40px;background:#3b4250;border-radius:50%"></div>`,'gap:14px'),R(`<div style="width:40px;height:40px;background:#3b4250;border-radius:3px"></div><div style="width:45px;height:45px;background:#3b4250;border-radius:50%"></div>`,'gap:14px'))],
+['One icon style','Icon system practice','Same stroke width, same corner style, same size grid. Mixed icon sets look borrowed.',
+ P(R(`<svg width="130" height="34"><circle cx="17" cy="17" r="11" fill="none" stroke="#3b4250" stroke-width="1"/><rect x="45" y="6" width="22" height="22" fill="#3b4250"/><path d="M90 28L101 6L112 28Z" fill="none" stroke="#3b4250" stroke-width="3.5"/></svg>`),R(`<svg width="130" height="34"><circle cx="17" cy="17" r="11" fill="none" stroke="#3b4250" stroke-width="2"/><rect x="45" y="6" width="22" height="22" rx="4" fill="none" stroke="#3b4250" stroke-width="2"/><path d="M90 28L101 6L112 28Z" fill="none" stroke="#3b4250" stroke-width="2" stroke-linejoin="round"/></svg>`))],
+['One primary action per screen','Button hierarchy','One filled button for the main action, then quieter styles for the rest.',
+ P(R('<span class="b">Save</span><span class="b">Print</span><span class="b">Share</span>'),R('<span class="b">Save</span><span class="b2">Print</span><span class="bt">Share</span>'))],
+['Emphasise by de-emphasising','Refactoring UI: "Emphasise by de-emphasising"','To make the active item stand out, make the others quieter rather than making it louder.',
+ P(C('<b style="color:#2f6fed;font-size:15px">Sales</b><b>Stock</b><b>Cancellations</b><b>Settings</b>'),C('<b>Sales</b><span class="mute">Stock</span><span class="mute">Cancellations</span><span class="mute">Settings</span>'))],
+['Labels above fields','Wroblewski, Web Form Design','A visible label above each field. Placeholder text disappears when you type, so it cannot be the label.',
+ P(C('<div class="in">Customer name</div><div class="in">Phone</div>'),C('<span class="lab">Customer name</span><div class="in" style="margin-top:-3px">Budi</div><span class="lab">Phone</span><div class="in" style="margin-top:-3px">0812…</div>'))],
+['Start with too much white space','Refactoring UI: "Start with too much white space"','Begin airy and remove space until it feels right. Cramped first drafts rarely get loosened.',
+ P(`<div class="card" style="padding:4px">${C(H(50)+L(80)+L(60)+'<span class="b" style="align-self:flex-start;padding:3px 8px">Open</span>','gap:2px')}</div>`,`<div class="card" style="padding:16px">${C(H(50)+L(80)+L(60)+'<span class="b" style="align-self:flex-start;margin-top:6px">Open</span>','gap:8px')}</div>`)],
+['Squint test','Designer heuristic','Blur the screen. The most important thing should still be the first thing you see.',
+ P(`<div style="filter:blur(3px);width:100%">${C(rep(4,()=>R(H(30)+L(40))))}</div>`,`<div style="filter:blur(3px);width:100%">${C(H(70,'height:22px')+L(40)+L(60)+L(50))}</div>`)],
+['Golden ratio split','1 : 1.618','A main column about 1.6 times the side column looks balanced. A style option, not a rule.',
+ S(`<div style="display:flex;gap:6px;width:100%;height:70px"><div style="flex:1.618;background:#fff;border-radius:10px"></div><div style="flex:1;background:#fff;border-radius:10px"></div></div><span class="mute">1.618 : 1</span>`)],
+['F-pattern scanning','Nielsen Norman Group eye-tracking','People read the top line, then the start of each line below. Put the key words first.',
+ S(`<div style="position:relative;width:100%">${C(lines([95,80,90,60,85,70]))}<div style="position:absolute;left:0;top:-4px;width:95%;height:16px;background:rgba(239,68,68,.25);border-radius:8px"></div><div style="position:absolute;left:0;top:20px;width:60%;height:14px;background:rgba(239,68,68,.2);border-radius:8px"></div><div style="position:absolute;left:0;top:0;width:22%;height:100%;background:rgba(239,68,68,.15);border-radius:8px"></div></div>`)],
+['Z-pattern for sparse screens','Layout convention','On simple screens the eye moves top-left, top-right, diagonally, then across the bottom. Put the action at the end.',
+ S(`<svg width="200" height="100"><rect x="8" y="8" width="40" height="12" rx="3" fill="#3b4250"/><rect x="150" y="8" width="40" height="12" rx="3" fill="#c4cad3"/><rect x="140" y="78" width="52" height="16" rx="5" fill="#2f6fed"/><path d="M30 26H170L30 76H160" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="4 4"/></svg>`)],
+['Dark mode is not pure black','Material dark theme','Use a very dark grey with off-white text. Pure black with pure white glares and smears on phones.',
+ P(`<div style="background:#000;border-radius:10px;padding:12px;width:100%;color:#fff;font-weight:700">Rp 12.400.000</div>`,`<div style="background:#16181d;border-radius:10px;padding:12px;width:100%;color:#e7e9ee;font-weight:700">Rp 12.400.000</div>`)],
+['Softer colours in dark mode','Material dark theme','Strong saturated colours vibrate on dark backgrounds. Use lighter, less saturated versions.',
+ P(`<div style="background:#16181d;border-radius:10px;padding:12px;width:100%"><span class="b" style="background:#0040ff">Save</span> <span style="color:#ff0000;font-weight:700">−3</span></div>`,`<div style="background:#16181d;border-radius:10px;padding:12px;width:100%"><span class="b" style="background:#7aa2f7;color:#0d1117">Save</span> <span style="color:#f28b82;font-weight:700">−3</span></div>`)],
+['Letter-spacing by size','Type practice','Tighten big headings slightly. Loosen tiny all-caps labels slightly.',
+ P(C('<span style="font-size:24px;font-weight:700;letter-spacing:.02em">Penjualan</span><span style="font-size:9px;font-weight:700;letter-spacing:-.02em">TOTAL TODAY</span>'),C('<span style="font-size:24px;font-weight:700;letter-spacing:-.025em">Penjualan</span><span style="font-size:9px;font-weight:700;letter-spacing:.08em;color:#6b7280">TOTAL TODAY</span>'))],
+['No all-caps sentences','Readability research','Capitals are fine for a two-word label. Whole sentences in capitals are slow to read and feel like shouting.',
+ P(`<b style="font-size:11px">THIS SALE WAS CANCELLED BY THE CASHIER BEFORE PAYMENT</b>`,`<span style="font-size:12px">This sale was cancelled by the cashier before payment.</span>`)],
+['At most two typefaces','Typography rule of thumb','One family with a few weights covers almost everything. Each extra font adds noise.',
+ P(C('<span style="font-family:Georgia;font-size:16px">Sales</span><span style="font-family:Courier New">Rp 1.250.000</span><span style="font-family:Impact">TODAY</span><span style="font-family:cursive">note</span>'),C('<span style="font-size:16px;font-weight:700">Sales</span><span class="num" style="font-weight:600">Rp 1.250.000</span><span class="mute">Today</span><span class="mute" style="font-size:11px">Note</span>'))],
+['Data-ink ratio','Tufte: "Above all else show the data."','Remove gridlines, boxes and decoration from charts until only the data is left.',
+ P(`<svg width="130" height="90" style="background:#fff;border:2px solid #333"><g stroke="#999">${rep(5,i=>`<line x1="0" x2="130" y1="${15+i*15}" y2="${15+i*15}"/>`)}</g>${[40,60,30,75,50].map((h,i)=>`<rect x="${10+i*24}" y="${85-h}" width="16" height="${h}" fill="#e11d48" stroke="#000" stroke-width="2"/>`).join('')}</svg>`,`<svg width="130" height="90">${[40,60,30,75,50].map((h,i)=>`<rect x="${10+i*24}" y="${85-h}" width="16" height="${h}" rx="3" fill="${i==3?'#2f6fed':'#b8c7ee'}"/>`).join('')}<line x1="4" x2="126" y1="85.5" y2="85.5" stroke="#c4cad3"/></svg>`)],
+['Label lines directly','Tufte; Few','Put the name at the end of each line instead of in a separate legend the eye has to match.',
+ P(`<svg width="140" height="90"><path d="M5 70L45 50L85 55L125 25" fill="none" stroke="#2f6fed" stroke-width="2"/><path d="M5 80L45 70L85 62L125 58" fill="none" stroke="#f59e0b" stroke-width="2"/><rect x="5" y="4" width="8" height="8" fill="#2f6fed"/><text x="16" y="12" font-size="9">A</text><rect x="30" y="4" width="8" height="8" fill="#f59e0b"/><text x="41" y="12" font-size="9">B</text></svg>`,`<svg width="150" height="90"><path d="M5 70L45 50L85 55L115 25" fill="none" stroke="#2f6fed" stroke-width="2"/><path d="M5 80L45 70L85 62L115 58" fill="none" stroke="#f59e0b" stroke-width="2"/><text x="119" y="28" font-size="10" fill="#2f6fed">Toko A</text><text x="119" y="61" font-size="10" fill="#b45309">Toko B</text></svg>`)],
+['Ease-out for things that enter','Motion design practice','Things that arrive should start fast and settle gently. Linear motion looks mechanical.',
+ Q(`<div style="width:100%"><i class="dot" style="background:#3b4250;width:16px;height:16px;animation:mv 1.2s linear infinite alternate"></i></div>`,`<div style="width:100%"><i class="dot" style="background:#2f6fed;width:16px;height:16px;animation:mv 1.2s cubic-bezier(.16,1,.3,1) infinite alternate"></i></div>`,'Linear','Ease-out')],
+['Short motion, 150–300 ms','Material and Apple motion guidance','Small UI changes should finish in about 200 ms. Long animations make the app feel slow.',
+ P(`<div style="width:100%"><i class="dot" style="background:#3b4250;width:16px;height:16px;animation:mv 1.6s ease-out infinite alternate"></i></div><span class="mute">800 ms+</span>`,`<div style="width:100%"><i class="dot" style="background:#2f6fed;width:16px;height:16px;animation:mv .22s ease-out infinite alternate"></i></div><span class="mute">~200 ms</span>`)],
+['Skeletons instead of spinners','Loading-state practice','Show the shape of the coming content so the page does not jump when it loads.',
+ P(`<div style="width:30px;height:30px;border-radius:50%;border:3px solid #d7dbe2;border-top-color:#2f6fed;animation:sp 1s linear infinite"></div>`,C(`<div class="shim" style="height:20px;width:60%;border-radius:5px"></div><div class="shim" style="height:8px;width:90%;border-radius:4px"></div><div class="shim" style="height:8px;width:75%;border-radius:4px"></div>`))],
+['Isolation effect (Von Restorff)','Von Restorff, 1933','The one item that looks different gets remembered. Use it for one thing per screen, not five.',
+ P(R(rep(4,()=>`<div class="card" style="width:40px;height:56px;background:#2f6fed"></div>`)),R(rep(4,i=>`<div class="card" style="width:40px;height:56px;${i==2?'background:#2f6fed':''}"></div>`)))],
+];
+
+const UX=[
+['Fitts\'s law','Fitts, 1954','Bigger and closer targets are faster to hit. Keep taps at least 44 pt (Apple) or 48 dp (Android).',
+ P(`<svg width="130" height="90"><circle cx="15" cy="75" r="5" fill="#3b4250"/><rect x="108" y="8" width="16" height="12" rx="3" fill="#2f6fed"/></svg>`,`<svg width="130" height="90"><circle cx="15" cy="75" r="5" fill="#3b4250"/><rect x="30" y="50" width="90" height="34" rx="8" fill="#2f6fed"/></svg>`)],
+['Hick\'s law','Hick and Hyman, 1952','Every extra choice makes the decision slower. Show a few and tuck the rest away.',
+ P(`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;width:100%">${rep(12,()=>'<span class="b2" style="padding:5px 0;text-align:center">·</span>')}</div>`,C('<span class="b2">Today</span><span class="b2">This week</span><span class="b2">This month</span><span class="bt">More…</span>'))],
+['Chunking (Miller)','Miller: "The magical number seven, plus or minus two"','Break long strings into small groups people can hold in their head.',
+ P('<span class="num" style="font-size:16px">1234567890123456</span>','<span class="num" style="font-size:16px">1234 5678 9012 3456</span>')],
+['Jakob\'s law','Nielsen: "Users spend most of their time on other sites."','People expect your app to work like the apps they already use. Put things where they usually go.',
+ P(R('<span>⚙︎</span><div style="flex:1"></div><b>Shop</b>','width:100%'),R('<b>Shop</b><div style="flex:1"></div><span>⚙︎</span>','width:100%'))],
+['Tesler\'s law','Tesler: some complexity cannot be removed, only moved','The app should carry the complexity so the user does not have to.',
+ P(C('<span class="lab">Currency</span><div class="in">IDR</div><span class="lab">Decimal separator</span><div class="in">,</div>','gap:3px'),C('<span class="mute">Amounts shown as</span><b>Rp 1.250.000</b><span class="mute" style="font-size:11px">Set from shop region</span>'))],
+['Doherty threshold','Doherty and Thadani, 1982','Responses under about 400 ms keep people in flow. Slower than that, they start waiting.',
+ S(`<div style="width:100%;height:10px;border-radius:5px;background:linear-gradient(90deg,#16a34a 0 40%,#f59e0b 40% 70%,#dc2626 70%)"></div><div class="row" style="width:100%;justify-content:space-between"><span>0</span><b>400 ms</b><span>1 s+</span></div>`)],
+['Peak–end rule','Kahneman','People judge an experience by its best moment and its ending. Make the finish of a flow feel good.',
+ S(`<svg width="220" height="80"><path d="M5 60C30 55 45 58 60 50S90 10 100 15S130 55 150 50S190 25 215 20" fill="none" stroke="#2f6fed" stroke-width="2.5"/><circle cx="100" cy="15" r="4" fill="#16a34a"/><circle cx="215" cy="20" r="4" fill="#16a34a"/><text x="88" y="10" font-size="9">peak</text><text x="190" y="12" font-size="9">end</text></svg>`)],
+['Serial position effect','Ebbinghaus','The first and last items are remembered best. Put the key items at the ends of menus.',
+ S(R(['Sales','·','·','·','Settings'].map((t,i)=>i==0||i==4?`<b>${t}</b>`:`<span class="mute">${t}</span>`).join(''),'gap:14px'))],
+['Zeigarnik effect','Zeigarnik, 1927','Unfinished tasks stay on people\'s minds. A visible "3 of 5 done" invites finishing.',
+ S(C('<b>Set up your shop · 3 of 5</b>'+['✓ Add shop','✓ Add products','✓ Invite staff','○ Connect printer','○ First sale'].map(t=>`<span class="${t[0]=='○'?'mute':''}">${t}</span>`).join(''),'gap:3px'))],
+['Goal-gradient effect','Hull, 1932','People speed up as they get close to a goal. Show how close they are.',
+ S(`<b>Monthly target</b><div style="width:100%;height:10px;border-radius:5px;background:#e2e6ec"><div style="width:86%;height:100%;border-radius:5px;background:#2f6fed"></div></div><span class="mute">Rp 43 jt of 50 jt</span>`)],
+['Aesthetic–usability effect','Kurosu and Kashimura, 1995','People think nicer-looking interfaces are easier to use, and forgive small problems in them.',
+ P(`<div style="background:#fff;border:2px solid #000;padding:6px;width:100%;font-family:Times"><u>Login</u><br><input style="width:90%" disabled><br><button disabled>OK</button></div>`,`<div class="card">${C('<b>Sign in</b><div class="in">Email</div><span class="b" style="text-align:center">Continue</span>')}</div>`)],
+['Postel\'s law','Postel: "Be conservative in what you do, be liberal in what you accept from others."','Accept what people type in any common format, then show it back cleanly.',
+ S(C(['1250000','1.250.000','1,25 jt'].map(t=>R(`<div class="in" style="width:90px;color:#333">${t}</div><span>→</span><b class="num">Rp 1.250.000</b>`)).join('')))],
+['Occam\'s razor','Ockham: "Entities should not be multiplied beyond necessity."','When two designs do the same job, keep the one with fewer parts.',
+ P(C(rep(6,()=>'<div class="in" style="padding:5px"> </div>'),'gap:3px'),C(rep(2,()=>'<div class="in"> </div>')+'<span class="b" style="text-align:center">Save</span>'))],
+['Pareto principle','80/20 rule','A few features get most of the use. Make those fast and obvious, and push the rest back.',
+ S(`<div style="display:flex;width:100%;height:24px;border-radius:6px;overflow:hidden"><div style="flex:2;background:#2f6fed"></div><div style="flex:8;background:#d7dbe2"></div></div><div class="row" style="width:100%"><span style="flex:2">20% of features</span><span style="flex:8;text-align:right" class="mute">80% of daily use</span></div>`)],
+['Parkinson\'s law','Parkinson, 1955','A task fills the time it is given. Autofill and good defaults shrink it.',
+ P(C('<span class="lab">Shop</span><div class="in">Type shop name…</div><span class="lab">Date</span><div class="in">dd/mm/yyyy</div>','gap:3px'),C('<span class="lab">Shop</span><div class="in" style="color:#333">Toko Melati (last used)</div><span class="lab">Date</span><div class="in" style="color:#333">Today</div>','gap:3px'))],
+['Choice overload','Iyengar and Lepper, 2000','Too many options lead to no choice at all. Offer a few good presets.',
+ P(C(rep(7,i=>R('<span>☐</span>'+L(40+i*7))),'gap:3px'),C('<span class="b2">Daily summary</span><span class="b2">By shop</span><span class="b2">By product</span>','align-items:flex-start'))],
+['Cognitive load','Sweller, 1988','Every element on screen costs a little attention. Show what is needed for the task in front of the user.',
+ P(`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;width:100%">${rep(12,()=>`<div class="card" style="padding:5px">${L(80)}${H(60,'height:6px;margin-top:3px')}</div>`)}</div>`,C('<span class="mute">Today</span><span class="big num">Rp 12.400.000</span><span class="mute">142 sales · 3 shops</span>'))],
+['Working memory','Baddeley','Do not make people remember something from one screen to use on the next. Show it where it is needed.',
+ P(C('<span class="mute">Use code from the previous screen</span><div class="in">Code</div>'),C('<span class="mute">Code</span><b class="num">4821</b><div class="in" style="color:#333">4821</div>'))],
+['Progressive disclosure','Nielsen, 1995','Show the basic options first. Reveal advanced ones when asked.',
+ P(C(rep(6,()=>R(L(35)+'<div style="flex:1"></div><div class="in" style="width:60px;padding:4px"> </div>')),'gap:3px'),C(R(L(35)+'<div style="flex:1"></div><div class="in" style="width:60px;padding:4px"> </div>')+R(L(35)+'<div style="flex:1"></div><div class="in" style="width:60px;padding:4px"> </div>')+'<span class="bt" style="padding-left:0">Advanced ›</span>'))],
+['Recognition over recall','Nielsen heuristic 6','Let people pick from what they can see instead of typing from memory.',
+ P(C('<div class="in">Type product SKU</div>'),C('<div class="in">Search products</div><span class="mute" style="font-size:11px">Recent</span><span>Kopi susu 250 ml</span><span>Roti tawar</span>','gap:4px'))],
+['Visibility of system status','Nielsen heuristic 1','Always show what just happened and whether it worked.',
+ P(R('<span class="b">Save</span>'),R('<span class="b2">Saved</span><span class="mute">✓ just now</span>'))],
+['Match the real world','Nielsen heuristic 2','Use the words shop owners use, not the database\'s.',
+ P(C('<b>TXN_VOID</b><span class="mute">pos_ref 88213 status=3</span>'),C('<b>Cancelled sale</b><span class="mute">Toko Melati · 14:05</span>'))],
+['Undo instead of "Are you sure?"','Raskin: "Never use a warning when you mean undo."','Confirmations get clicked through without reading. Let the action happen and offer Undo.',
+ P(`<div class="card">${C('<b>Are you sure?</b><span class="mute">This cannot be undone.</span>'+R('<span class="b2">Cancel</span><span class="b" style="background:#dc2626">Delete</span>'))}</div>`,`<div class="card" style="background:#1d2330;color:#fff">${R('<span>Sale deleted</span><div style="flex:1"></div><b style="color:#9cc0ff">Undo</b>')}</div>`)],
+['Consistency and standards','Nielsen heuristic 4','The same action gets the same word, place and look on every screen.',
+ P(R('<span class="b">Submit</span><span class="b2">OK</span><span class="b" style="border-radius:99px">Apply</span>'),R('<span class="b">Save</span><span class="b">Save</span><span class="b">Save</span>'))],
+['Error prevention','Nielsen heuristic 5','Make mistakes impossible where you can, for example by choosing a date instead of typing it.',
+ P(C('<div class="in" style="color:#333">31/02/2026</div><span style="color:#dc2626;font-size:11px">Invalid date</span>'),C(`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;width:100%">${rep(14,i=>`<span style="text-align:center;border-radius:6px;padding:2px 0;${i==9?'background:#2f6fed;color:#fff':''}">${i+1}</span>`)}</div>`))],
+['Shortcuts for experts','Nielsen heuristic 7','Keyboard shortcuts and a command bar make frequent users fast without getting in anyone\'s way.',
+ S(`<div class="card" style="width:85%">${R('<span class="mute">Search or jump to…</span><div style="flex:1"></div><span class="b2" style="padding:2px 6px">⌘K</span>')}</div>`)],
+['Errors that explain the fix','Nielsen heuristic 9','Say what went wrong in plain words and what to do next.',
+ P(C('<b style="color:#dc2626">Error 500</b><span class="mute">Request failed</span>'),C('<b>Couldn\'t load sales</b><span class="mute">Check your connection and try again.</span><span class="b" style="align-self:flex-start">Retry</span>'))],
+['Signifiers','Norman, The Design of Everyday Things','A thing you can tap must look tappable. Flat text that is secretly a button gets missed.',
+ P(C('<span>Export report</span>'),C('<span class="b2">⤓ Export report</span>'))],
+['Feedback on every action','Norman','Each press should change something right away: a pressed state, progress, then a result.',
+ S(R('<span class="b">Save</span><span>→</span><span class="b" style="opacity:.7">Saving…</span><span>→</span><span class="b2">✓ Saved</span>'))],
+['Natural mapping','Norman','Put controls next to the thing they control. Filters belong right above the table they filter.',
+ P(C(`<div class="row" style="width:100%"><span class="b2">Filter</span></div><div style="height:40px"></div>${lines([90,90,90])}`),C(`<div class="row"><span class="b2" style="padding:3px 8px">Today</span><span class="b2" style="padding:3px 8px">All shops</span></div>${lines([90,90,90])}`))],
+['Constraints','Norman','Limit inputs to valid values, for example a quantity stepper that stops at zero.',
+ P(C('<span class="lab">Qty</span><div class="in" style="color:#333">-5</div>'),C('<span class="lab">Qty</span>'+R('<span class="b2">−</span><b class="num" style="width:24px;text-align:center">0</b><span class="b2">+</span>')))],
+['Match the user\'s mental model','Norman; Johnson-Laird','Organise things the way the user already thinks about them: by day and by shop, not by database table.',
+ P(C('<span class="lab">From</span><div class="in">yyyy-mm-dd</div><span class="lab">To</span><div class="in">yyyy-mm-dd</div>','gap:3px'),C('<span class="b2">Today</span><span class="b2">Yesterday</span><span class="b2">This week</span>','align-items:flex-start'))],
+['Smart defaults','Default effect, Johnson and Goldstein, 2003','Most people keep the default. Make the default the right answer for most of them.',
+ P(C('<span class="lab">Date range</span><div class="in">Select…</div><span class="mute">No data</span>'),C('<span class="lab">Date range</span><div class="in" style="color:#333">Today</div><span class="big num" style="font-size:16px">Rp 12.400.000</span>'))],
+['Numbers need context','Anchoring, Tversky and Kahneman, 1974','A number alone means little. Show it against yesterday or last week.',
+ P(C('<span class="big num">Rp 12.400.000</span>'),C('<span class="big num">Rp 12.400.000</span><span style="color:#15803d">▲ 12% vs last week</span>'))],
+['Paradox of the active user','Carroll and Rosson, 1987','People skip tutorials and start using the app. Teach inside the screen, at the moment it matters.',
+ P(`<div class="card">${C('<b>Welcome tour 1/9</b>'+lines([90,80,85])+'<span class="b" style="align-self:flex-end">Next</span>')}</div>`,C(lines([90,70])+`<div style="background:#1d2330;color:#fff;border-radius:8px;padding:6px 8px;font-size:11px">Tap a shop to see its sales</div>`))],
+['Optimistic UI','Common app pattern','Show the result right away and sync in the background. Roll back only if it fails.',
+ P(R('<span>★</span><span class="mute">Waiting for server…</span>'),R('<span style="color:#f59e0b">★</span><span>Starred</span>'))],
+['Validate after the field, not during','Wroblewski inline validation study, 2009','Do not flag errors while someone is still typing. Check when they leave the field.',
+ P(C('<div class="in" style="color:#333;box-shadow:inset 0 0 0 1.5px #dc2626">0</div><span style="color:#dc2626;font-size:11px">Invalid phone number</span>'),C('<div class="in" style="color:#333;box-shadow:inset 0 0 0 1.5px #2f6fed">0812 34</div><span class="mute" style="font-size:11px">typing…</span>'))],
+['Empty states that lead somewhere','Empty-state practice','An empty screen should say why it is empty and give the next step.',
+ P(C('<span class="mute">No data</span>','align-items:center'),C('<b>No sales yet today</b><span class="mute">Sales appear here as shops sync.</span><span class="b2">Check shop sync</span>','align-items:center'))],
+['Thumb zone','Hoober, 2013','On phones the bottom of the screen is easy to reach. Put main actions there.',
+ Q(`<div style="width:62px;height:110px;border-radius:12px;background:#fff;box-shadow:0 0 0 2px #3b4250;position:relative;overflow:hidden"><div style="position:absolute;inset:auto 0 0 0;height:45%;background:rgba(22,163,74,.25)"></div><div style="position:absolute;top:6px;left:8px;right:8px;height:12px;border-radius:4px;background:#2f6fed"></div></div>`,`<div style="width:62px;height:110px;border-radius:12px;background:#fff;box-shadow:0 0 0 2px #3b4250;position:relative;overflow:hidden"><div style="position:absolute;inset:auto 0 0 0;height:45%;background:rgba(22,163,74,.25)"></div><div style="position:absolute;bottom:8px;left:8px;right:8px;height:14px;border-radius:4px;background:#2f6fed"></div></div>`,'Action on top','Action in reach')],
+['Banner blindness','Benway and Lane, 1998','People ignore anything shaped like an ad or a banner. Put important notes inline, next to what they affect.',
+ P(C(`<div style="background:#fde68a;border-radius:6px;padding:6px;width:100%;font-size:11px">⚠ 2 shops not synced</div>${lines([90,80,85])}`),C(R(L(50)+'<div style="flex:1"></div><span style="font-size:11px;color:#b45309">not synced</span>')+lines([90,80])))],
+['Actions next to their object','Locality','Edit and delete live on the row they affect, not in a toolbar far away.',
+ P(C(R('<div style="flex:1"></div><span class="b2">Edit</span><span class="b2">Delete</span>','width:100%')+'<div style="height:20px"></div>'+lines([90,90])),C(rep(3,()=>R(L(55)+'<div style="flex:1"></div><span class="mute">⋯</span>','width:100%'))))],
+['Don\'t make me think','Krug: "Don\'t make me think."','Labels should say exactly what will happen, so nobody has to stop and work it out.',
+ P(R('<span class="b">Proceed</span>'),R('<span class="b">Save sale</span>'))],
+['Omit needless words','Strunk: "Omit needless words."','Halve the words, then halve them again.',
+ P('<span style="font-size:11px">Please note that you will be able to view all of your sales information for each of your shops on this page below.</span>','<span>Sales by shop</span>')],
+['Least astonishment','Principle of least surprise','Things should do what people expect. Closing a form should not quietly throw away their work.',
+ P(C('<span class="mute">Tapped ✕</span><b style="color:#dc2626">Draft lost</b>'),C('<span class="mute">Tapped ✕</span><b>Draft kept</b><span class="mute">Resume any time</span>'))],
+['Kano model','Kano, 1984','Basics are expected and only noticed when missing. Delighters surprise. Fix the basics before adding delight.',
+ S(C('<div class="row"><span class="b2" style="width:90px">Basic</span><span class="mute">totals are right</span></div><div class="row"><span class="b2" style="width:90px">Performance</span><span class="mute">loads fast</span></div><div class="row"><span class="b" style="width:90px">Delighter</span><span class="mute">best-day highlight</span></div>'))],
+['Flow','Csikszentmihalyi, 1990','People enjoy work when the challenge fits their skill. Avoid boring them or overwhelming them.',
+ S(`<svg width="200" height="100"><path d="M15 90L185 10" stroke="#16a34a" stroke-width="18" opacity=".25"/><text x="80" y="55" font-size="10" fill="#15803d">flow</text><text x="20" y="20" font-size="9" fill="#6b7280">anxiety</text><text x="140" y="92" font-size="9" fill="#6b7280">boredom</text><line x1="10" y1="95" x2="190" y2="95" stroke="#9aa1ad"/><line x1="10" y1="95" x2="10" y2="5" stroke="#9aa1ad"/></svg>`,'Challenge vs skill')],
+['Labour illusion','Buell and Norton, 2011','People value results more when they can see work being done. Say what the app is doing while they wait.',
+ P(C('<span class="mute">Please wait</span>'),C('<span>Adding up 1.240 sales from 3 shops…</span><div style="width:100%;height:6px;border-radius:3px;background:#e2e6ec"><div style="width:60%;height:100%;border-radius:3px;background:#2f6fed"></div></div>'))],
+['Endowed progress','Nunes and Drèze, 2006','A task that already shows some progress gets finished more often than one starting from zero.',
+ P(C('<b>0 of 8</b>'+R(rep(8,()=>'<i class="dot" style="background:#d7dbe2"></i>'))),C('<b>2 of 10</b>'+R(rep(10,i=>`<i class="dot" style="background:${i<2?'#2f6fed':'#d7dbe2'}"></i>`))))],
+['Fogg behaviour model','Fogg: Behaviour = Motivation × Ability × Prompt','Prompt people at the moment they can act easily. A nudge when the task is hard is ignored.',
+ S(`<svg width="200" height="100"><path d="M20 10C40 70 90 85 190 90" fill="none" stroke="#2f6fed" stroke-width="2"/><text x="120" y="40" font-size="9" fill="#15803d">prompt works</text><text x="30" y="88" font-size="9" fill="#6b7280">prompt fails</text><line x1="12" y1="95" x2="195" y2="95" stroke="#9aa1ad"/><line x1="12" y1="95" x2="12" y2="5" stroke="#9aa1ad"/></svg>`,'Motivation vs ability')],
+['Fewer steps','Keystroke-level model, Card, Moran and Newell, 1980','Count the taps. Every step you remove is time saved hundreds of times a day.',
+ P(R(rep(5,i=>`<span class="b2" style="padding:4px 7px">${i+1}</span>`),'gap:3px'),R(rep(2,i=>`<span class="b" style="padding:4px 7px">${i+1}</span>`)))],
+];
+
+const KEY='uxpicks-v1';let st={};try{st=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+const all=[...UI.map((x,i)=>['UI-'+(i+1),...x]),...UX.map((x,i)=>['UX-'+(i+1),...x])];
+const card=([id,t,s,b,d])=>`<div class="item ${st[id]||''}" data-id="${id}"><h3><span class="n">${id}</span>${t}</h3><div class="src">${s}</div><p class="body">${b}</p>${d}<div class="pick"><button class="k">Keep</button><button class="s">Skip</button></div></div>`;
+document.getElementById('list').innerHTML=`<h2>UI: how it looks (50)</h2>`+all.slice(0,50).map(card).join('')+`<h2>UX: how it works (50)</h2>`+all.slice(50).map(card).join('');
+function upd(){const v=Object.values(st);const k=v.filter(x=>x=='keep').length,s=v.filter(x=>x=='skip').length;document.getElementById('count').textContent=`${k} kept · ${s} skipped · ${all.length-k-s} left`;try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
+document.getElementById('list').addEventListener('click',e=>{const b=e.target.closest('.pick button');if(!b)return;const it=b.closest('.item'),id=it.dataset.id,v=b.classList.contains('k')?'keep':'skip';st[id]=st[id]==v?'':v;it.classList.remove('keep','skip');if(st[id])it.classList.add(st[id]);upd()});
+document.getElementById('copy').onclick=()=>{const k=all.filter(x=>st[x[0]]=='keep').map(x=>x[0]+' '+x[1]),s=all.filter(x=>st[x[0]]=='skip').map(x=>x[0]);const t='KEEP\n'+k.join('\n')+'\n\nSKIP\n'+s.join(', ');const o=document.getElementById('out');o.style.display='block';o.value=t;o.select();try{navigator.clipboard.writeText(t)}catch(e){}};
+upd();
+</script>
+</body>
+</html>
